@@ -5,7 +5,7 @@ import folium
 from folium.plugins import MarkerCluster
 
 DATA_PATH = Path(__file__).parent / "data" / "cameras.json"
-OUTPUT_PATH = Path(__file__).parent / "map.html"
+OUTPUT_PATH = Path(__file__).parent / "index.html"
 
 COLOR_MAP = {
     "speed_camera": "red",
