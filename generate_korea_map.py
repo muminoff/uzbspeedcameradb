@@ -23,6 +23,14 @@ ENFORCEMENT_LABELS = {
 
 DEFAULT_COLOR = "gray"
 
+DIRECTION_MAP = {"1": "up", "2": "down", "3": "both"}
+
+DIRECTION_LABELS = {
+    "1": "상행 (Upbound)",
+    "2": "하행 (Downbound)",
+    "3": "양방향 (Both)",
+}
+
 
 def _normalize_code(raw: str) -> str:
     stripped = raw.lstrip("0")
@@ -64,6 +72,10 @@ def build_popup(cam: dict) -> str:
     year = cam.get("설치연도", "").strip()
     if year:
         lines.append(f"<b>설치연도:</b> {year}")
+    direction_code = cam.get("도로노선방향", "").strip()
+    direction_label = DIRECTION_LABELS.get(_normalize_code(direction_code), "")
+    if direction_label:
+        lines.append(f"<b>방향:</b> {direction_label}")
     region = cam.get("시도명", "").strip()
     district = cam.get("시군구명", "").strip()
     if region:
@@ -83,17 +95,36 @@ def generate_map() -> None:
         code = cam.get("단속구분", "").strip()
         color = ENFORCEMENT_COLORS.get(_normalize_code(code), DEFAULT_COLOR)
         popup_html = build_popup(cam)
-        data.append([lat, lon, color, popup_html])
+        dir_code = cam.get("도로노선방향", "").strip()
+        direction = DIRECTION_MAP.get(_normalize_code(dir_code), "both")
+        data.append([lat, lon, color, popup_html, direction])
 
     callback = """\
 function (row) {
-    var marker = L.circleMarker(new L.LatLng(row[0], row[1]), {
-        radius: 5,
-        color: row[2],
-        fillColor: row[2],
-        fillOpacity: 0.7,
-        weight: 1
-    });
+    var color = row[2];
+    var dir = row[4];
+    var marker;
+    if (dir === 'both') {
+        marker = L.circleMarker(new L.LatLng(row[0], row[1]), {
+            radius: 5,
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.7,
+            weight: 1
+        });
+    } else {
+        var points = dir === 'down' ? '7,13 13,1 1,1' : '7,1 13,13 1,13';
+        var svg = '<svg width="14" height="14" viewBox="0 0 14 14">' +
+            '<polygon points="' + points + '" fill="' + color + '" stroke="#333" stroke-width="1"/>' +
+            '</svg>';
+        var icon = L.divIcon({
+            html: svg,
+            className: '',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+        marker = L.marker(new L.LatLng(row[0], row[1]), {icon: icon});
+    }
     marker.bindPopup(row[3], {maxWidth: 300});
     return marker;
 }"""
