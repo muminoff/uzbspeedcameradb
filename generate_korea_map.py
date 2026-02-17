@@ -113,15 +113,16 @@ function (row) {
             weight: 1
         });
     } else {
-        var points = dir === 'down' ? '7,13 13,1 1,1' : '7,1 13,13 1,13';
-        var svg = '<svg width="14" height="14" viewBox="0 0 14 14">' +
+        var points = dir === 'down' ? '0,0 12,0 6,18' : '0,18 12,18 6,0';
+        var anchor = dir === 'down' ? [6, 0] : [6, 18];
+        var svg = '<svg width="12" height="18" viewBox="0 0 12 18">' +
             '<polygon points="' + points + '" fill="' + color + '" stroke="#333" stroke-width="1"/>' +
             '</svg>';
         var icon = L.divIcon({
             html: svg,
             className: '',
-            iconSize: [14, 14],
-            iconAnchor: [7, 7]
+            iconSize: [12, 18],
+            iconAnchor: anchor
         });
         marker = L.marker(new L.LatLng(row[0], row[1]), {icon: icon});
     }
